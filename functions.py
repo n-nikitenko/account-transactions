@@ -1,7 +1,6 @@
 import json
 import os.path
 from datetime import datetime
-from pprint import pprint
 
 
 def get_json_data():
