@@ -38,9 +38,10 @@ def print_operation(operation):
         <дата перевода> <описание перевода>
         <откуда> -> <куда>
         <сумма перевода> <валюта>
-
+    Дата  представлена в формате ДД.ММ.ГГГГ (пример: 14.10.2018)
     """
-    print(f"{datetime.strptime(operation['date'], DT_FORMAT)} {operation['description']}")
+    output_date_format = '%d.%m.%Y'
+    print(f"{datetime.strptime(operation['date'], DT_FORMAT).strftime(output_date_format)} {operation['description']}")
     if 'from' in operation:
         print(f"{operation['from']} -> {operation['to']}")
     else:
