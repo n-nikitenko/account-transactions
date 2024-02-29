@@ -3,22 +3,22 @@ import os.path
 from datetime import datetime
 
 
-def get_json_data():
+def get_json_data(json_file=f"..{os.sep}data{os.sep}operations.json"):
     """Чтение данных по операциям из json"""
-    with open(os.path.join("../data", "operations.json"), encoding="utf-8") as json_file:
-        data = json.load(json_file)
+    with open(json_file, encoding="utf-8") as fd:
+        data = json.load(fd)
         return data
 
 
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 
-def get_last_five_operations(json_data):
+def get_last_operations(json_data):
     """
         Принимает список словарей, содержащих данные по выполненным операциям.
         Каждый словарь обязательно должен содержать поле 'date', иначе он не будет обработан.
-        Возвращает список, который содержит последние пять выполненных операций, отсортированный
-        в порядке убывания значения поля 'date'
+        Возвращает список, который содержит последние op_count выполненных операций (status == 'EXECUTED'),
+         отсортированный в порядке убывания значения поля 'date'
      """
     op_count = 5
     status = 'EXECUTED'
@@ -32,6 +32,22 @@ def get_last_five_operations(json_data):
     return with_status[:op_count if op_count < len(with_status) else len(with_status)]
 
 
+def mask(data):
+    """
+    Маскирует номер счета или номер карты в переданной строке.
+    Номер счета заменяется на номер в формате  **XXXX (видны только последние 4 цифры номера счета).
+    Номер карты заменяется на номер в формате  XXXX XX** **** XXXX
+    (видны первые 6 цифр и последние 4, разбито по блокам по 4 цифры, разделенных пробелом).
+    """
+    data_list = data.split()
+    number = data_list[-1]
+    if 'Счет' in data:
+        masked = '*' * (len(number) - 4) + number[-4:]
+    else:
+        masked = f'{number[0:4]} {number[4:6]}**  **** {number[-4:]}'
+    return f"{' '.join(data_list[:len(data_list) - 1])} {masked}"
+
+
 def print_operation(operation):
     """
     Вывод на экран данных по операции в формате:
@@ -43,7 +59,7 @@ def print_operation(operation):
     output_date_format = '%d.%m.%Y'
     print(f"{datetime.strptime(operation['date'], DT_FORMAT).strftime(output_date_format)} {operation['description']}")
     if 'from' in operation:
-        print(f"{operation['from']} -> {operation['to']}")
+        print(f"{mask(operation['from'])} -> {mask(operation['to'])}")
     else:
-        print(f"{operation['to']}")
+        print(f"{mask(operation['to'])}")
     print(f"{operation['operationAmount']['amount']} {operation['operationAmount']['currency']['name']}\n")
